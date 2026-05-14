@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}{{ plan.name }} — SmartPrep AI{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+
+  <!-- ── Header ─────────────────────────────────────────────────── -->
+  <div class="dash-header">
+    <div class="dash-header-left">
+      <a href="/" class="back-link">← All plans</a>
+      <h1 class="dash-title">{{ plan.name }}</h1>
+      <p class="dash-meta">
+        Exam: <strong>{{ plan.exam_date }}</strong> &nbsp;·&nbsp;
+        {% if days_left > 0 %}
+          <strong>{{ days_left }} day{{ 's' if days_left != 1 else '' }}</strong> remaining
+        {% else %}
+          <span class="badge hard">Exam day!</span>
+        {% endif %}
+      </p>
+    </div>
+    <form action="/plan/{{ plan.id }}/delete" method="POST"
+          onsubmit="return confirm('Delete this plan and all its data?')">
+      <button type="submit" class="btn btn-danger-ghost btn-sm">Delete plan</button>
+    </form>
+  </div>
+
+  <!-- ── Stats row ──────────────────────────────────────────────── -->
+  <div class="stats-row">
+
+    <div class="stat-card accent-blue">
+      <div class="stat-label">Overall progress</div>
+      <div class="stat-value" id="overallPct">{{ stats.overall_pct }}%</div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar" id="overallBar"
+             style="width: {{ stats.overall_pct }}%"></div>
+      </div>
+      <div class="stat-sub" id="overallSub">
+        {{ stats.completed }} / {{ stats.total_slots }} sessions done
+      </div>
+    </div>
+
+    <div class="stat-card accent-green">
+      <div class="stat-label">Daily streak</div>
+      <div class="stat-value">
+        {% if stats.streak > 0 %}🔥 {{ stats.streak }} day{{ 's' if stats.streak != 1 else '' }}{% else %}—{% endif %}
+      </div>
+      <div class="stat-sub">Consecutive study days</div>
+    </div>
+
+    <div class="stat-card accent-purple">
+      <div class="stat-label">Days left</div>
+      <div class="stat-value">{{ days_left }}</div>
+      <div class="stat-sub">Until {{ plan.exam_date }}</div>
+    </div>
+
+  </div>
+
+  <!-- ── Subject breakdown ──────────────────────────────────────── -->
+  {% if stats.subjects %}
+  <div class="subject-breakdown" id="subjectBreakdown">
+    <h2 class="section-title">Subject Progress</h2>
+    <div class="subject-bars">
+      {% for subj in stats.subjects %}
+      <div class="subject-bar-row" data-subject="{{ subj.subject }}">
+        <div class="subj-label">
+          <span>{{ subj.subject }}</span>
+          <span class="subj-pct" data-subj-pct="{{ subj.subject }}">{{ subj.pct }}%</span>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar subj-bar"
+               data-subj-bar="{{ subj.subject }}"
+               style="width: {{ subj.pct }}%"></div>
+        </div>
+        <span class="subj-count" data-subj-count="{{ subj.subject }}">
+          {{ subj.done }}/{{ subj.total }}
+        </span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ── Schedule ───────────────────────────────────────────────── -->
+  <div class="schedule-section">
+    <h2 class="section-title">Your Study Schedule</h2>
+
+    {% if grouped_schedule %}
+    <div class="schedule-list">
+      {% for slot_date, slots in grouped_schedule.items() %}
+
+      {% set is_today = (slot_date == today) %}
+      {% set is_past = (slot_date < today) %}
+
+      <div class="day-group {% if is_today %}day-today{% elif is_past %}day-past{% endif %}">
+        <div class="day-label">
+          {% if is_today %}
+            <span class="today-pill">Today</span>
+          {% endif %}
+          {{ slot_date }}
+        </div>
+
+        <div class="day-slots">
+          {% for slot in slots %}
+          <div class="slot-card status-{{ slot.status }}" id="slot-{{ slot.id }}">
+            <div class="slot-info">
+              <span class="slot-topic">{{ slot.topic_name }}</span>
+              <span class="slot-subject">{{ slot.subject_name }}</span>
+            </div>
+            <div class="slot-meta">
+              <span class="badge {{ slot.difficulty | lower }}">{{ slot.difficulty }}</span>
+              <span class="slot-duration">{{ slot.duration_hr }}h</span>
+            </div>
+            <div class="slot-actions">
+              {% if slot.status == 'complete' %}
+                <button class="btn btn-sm btn-success-ghost"
+                        onclick="markSlot({{ slot.id }}, 'pending', this)">✓ Done</button>
+              {% elif slot.status == 'incomplete' %}
+                <span class="badge-status incomplete">Rescheduled</span>
+                <button class="btn btn-sm btn-primary"
+                        onclick="markSlot({{ slot.id }}, 'complete', this)">Mark done</button>
+              {% else %}
+                <button class="btn btn-sm btn-outline"
+                        onclick="markSlot({{ slot.id }}, 'complete', this)">Mark done</button>
+                {% if is_today or is_past %}
+                <button class="btn btn-sm btn-ghost"
+                        onclick="markSlot({{ slot.id }}, 'incomplete', this)">Can't do it</button>
+                {% endif %}
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">📅</div>
+      <p>No schedule generated yet. This shouldn't normally happen — try recreating the plan.</p>
+    </div>
+    {% endif %}
+
+  </div><!-- /.schedule-section -->
+</div><!-- /.dashboard -->
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Pass the plan id to JS for API calls
+  const PLAN_ID = {{ plan.id }};
+</script>
+{% endblock %}

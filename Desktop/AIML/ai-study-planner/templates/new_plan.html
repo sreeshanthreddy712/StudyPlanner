@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}New Study Plan — SmartPrep AI{% endblock %}
+
+{% block content %}
+<div class="form-page">
+  <div class="form-header">
+    <a href="/" class="back-link">← Back</a>
+    <h1>Build your study plan</h1>
+    <p>Tell us what you're studying and when your exam is. We'll handle the rest.</p>
+  </div>
+
+  <div class="form-card" id="planForm">
+
+    <!-- Step 1: Plan basics -->
+    <div class="form-section">
+      <h2 class="form-section-title">
+        <span class="step-num">1</span> Plan Details
+      </h2>
+      <div class="field-row">
+        <div class="field">
+          <label for="planName">Plan name</label>
+          <input type="text" id="planName" placeholder="e.g. Semester Finals, GATE 2025…" maxlength="80" />
+        </div>
+        <div class="field">
+          <label for="examDate">Exam date</label>
+          <input type="date" id="examDate" min="{{ today }}" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Subjects + topics (dynamic) -->
+    <div class="form-section">
+      <h2 class="form-section-title">
+        <span class="step-num">2</span> Subjects &amp; Topics
+      </h2>
+      <p class="form-hint">Add each subject you need to study, then list its topics with difficulty levels.</p>
+
+      <div id="subjectsList">
+        <!-- Subjects injected here by JS -->
+      </div>
+
+      <button type="button" class="btn btn-outline" id="addSubjectBtn">
+        + Add Subject
+      </button>
+    </div>
+
+    <!-- Submit -->
+    <div class="form-actions">
+      <button type="button" class="btn btn-primary btn-lg" id="generateBtn">
+        ⚡ Generate Schedule
+      </button>
+      <p class="form-note" id="formError" style="color: var(--red); display:none;"></p>
+    </div>
+
+  </div><!-- /.form-card -->
+</div>
+
+<!-- Template for a subject block (cloned by JS) -->
+<template id="subjectTemplate">
+  <div class="subject-block" data-subject-index="">
+    <div class="subject-header">
+      <input type="text" class="subject-name-input" placeholder="Subject name (e.g. Mathematics)" maxlength="60" />
+      <button type="button" class="btn-icon remove-subject-btn" title="Remove subject">✕</button>
+    </div>
+    <div class="topics-list">
+      <!-- Topics injected here -->
+    </div>
+    <button type="button" class="btn btn-ghost btn-sm add-topic-btn">+ Add Topic</button>
+  </div>
+</template>
+
+<!-- Template for a topic row (cloned by JS) -->
+<template id="topicTemplate">
+  <div class="topic-row">
+    <input type="text" class="topic-name-input" placeholder="Topic name" maxlength="80" />
+    <select class="topic-difficulty-select">
+      <option value="Easy">Easy</option>
+      <option value="Medium" selected>Medium</option>
+      <option value="Hard">Hard</option>
+    </select>
+    <button type="button" class="btn-icon remove-topic-btn" title="Remove topic">✕</button>
+  </div>
+</template>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // The new-plan form logic lives in script.js (initNewPlanForm)
+  document.addEventListener("DOMContentLoaded", () => initNewPlanForm());
+</script>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}SmartPrep AI — Your Study Plans{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero-text">
+    <h1>Study with a plan that <em>adapts to you.</em></h1>
+    <p class="hero-sub">SmartPrep AI generates intelligent study schedules based on topic difficulty and tracks your progress as you go.</p>
+    <a href="/plan/new" class="btn btn-primary btn-lg">Create your first plan →</a>
+    <a href="/seed" class="btn btn-ghost btn-lg">Load demo data</a>
+  </div>
+  <div class="hero-visual" aria-hidden="true">
+    <div class="floating-card fc-1">
+      <span class="fc-label">Calculus</span>
+      <span class="badge hard">Hard</span>
+    </div>
+    <div class="floating-card fc-2">
+      <span class="fc-label">Today's sessions</span>
+      <span class="fc-val">3 topics</span>
+    </div>
+    <div class="floating-card fc-3">
+      <span class="fc-label">Streak</span>
+      <span class="fc-val">🔥 5 days</span>
+    </div>
+  </div>
+</section>
+
+{% if plans %}
+<section class="plans-section">
+  <h2 class="section-title">Your Plans</h2>
+  <div class="plans-grid">
+    {% for plan in plans %}
+    <div class="plan-card">
+      <div class="plan-card-header">
+        <h3 class="plan-name">{{ plan.name }}</h3>
+        <span class="plan-exam-badge">Exam: {{ plan.exam_date }}</span>
+      </div>
+      <p class="plan-created">Created {{ plan.created_at[:10] }}</p>
+      <div class="plan-card-footer">
+        <a href="/plan/{{ plan.id }}" class="btn btn-primary">Open Dashboard</a>
+        <form action="/plan/{{ plan.id }}/delete" method="POST" style="display:inline"
+              onsubmit="return confirm('Delete this plan?')">
+          <button type="submit" class="btn btn-danger-ghost">Delete</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% else %}
+<section class="empty-state">
+  <div class="empty-icon">📖</div>
+  <h2>No plans yet</h2>
+  <p>Create your first study plan to get a personalized, adaptive schedule.</p>
+  <a href="/plan/new" class="btn btn-primary">Get Started</a>
+</section>
+{% endif %}
+
+<section class="features-section">
+  <h2 class="section-title">Why SmartPrep?</h2>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🎯</div>
+      <h3>Difficulty-weighted scheduling</h3>
+      <p>Hard topics get 2× the study time. Medium topics get 1.5×. Your schedule reflects actual effort required.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔄</div>
+      <h3>Adaptive rescheduling</h3>
+      <p>Mark a session incomplete and the planner automatically redistributes it across upcoming days.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>Progress tracking</h3>
+      <p>See completion per subject, your daily streak, and overall exam readiness at a glance.</p>
+    </div>
+  </div>
+</section>
+{% endblock %}
